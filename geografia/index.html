@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="Geografía 1º">
@@ -431,6 +431,11 @@ body.mando .panel { flex: 1; justify-content: center; padding-block: 16px max(20
 .opcion-tele { text-align: left; background: var(--fondo); border-radius: 16px; padding: 12px 14px; }
 .opcion-tele b { color: var(--acento); }
 .opcion-tele p { margin: 6px 0 0; line-height: 1.45; font-size: 15px; }
+
+/* El panel de respuestas siempre se puede desplazar: el botón Siguiente nunca queda fuera */
+.panel { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+@media (max-aspect-ratio: 5/4) { .panel { max-height: 64vh; } .mapa-caja { min-height: 30vh; } }
+@media (max-aspect-ratio: 5/4) and (max-height: 700px) { .panel { max-height: 68vh; } .mapa-caja { min-height: 26vh; } .pregunta { font-size: 20px; } .op { min-height: 50px; font-size: 16px; } }
 </style>
 <div id="app">
   <section class="pantalla" id="menu">
@@ -972,7 +977,7 @@ function siguiente() {
   else $("#barraTiempo").style.visibility = "hidden";
 }
 function pintarPregunta(rebote) {
-  const q = E.q; const hayRebote = rebote != null;
+  const q = E.q; const hayRebote = rebote != null; panel.scrollTop = 0;
   pintarMarcador(); limpiarMapa();
   q.mostrar.forEach((m) => dibujar(m.it, { color: m.color, letra: m.letra }));
   encuadreActual = q.encuadre; irA(q.encuadre);
@@ -1060,6 +1065,7 @@ function mostrarDato(acierto) {
   const com = panel.querySelector(".comodines"); if (com) com.remove();
   panel.appendChild(d);
   if (E.modo === "practica") { const b = document.createElement("button"); b.className = "btn-siguiente"; b.textContent = "Siguiente"; b.onclick = siguiente; panel.appendChild(b); }
+  setTimeout(() => { try { panel.scrollTo({ top: panel.scrollHeight, behavior: "smooth" }); } catch (_) { panel.scrollTop = panel.scrollHeight; } }, 80);
 }
 
 // ---------- Fin y récords ----------
@@ -1568,12 +1574,14 @@ if (window.ES_WEB) {
   window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); avisoInstalar = e; if (!instalada) inst.hidden = false; });
   window.addEventListener("appinstalled", () => { inst.hidden = true; });
   const esIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  if (esIOS && !instalada) inst.hidden = false;
+  const esMovil = esIOS || /android|mobile/i.test(navigator.userAgent);
+  if (esMovil && !instalada) inst.hidden = false;
   inst.onclick = async () => {
     SON.toque();
     if (avisoInstalar) { avisoInstalar.prompt(); try { await avisoInstalar.userChoice; } catch (_) {} avisoInstalar = null; inst.hidden = true; return; }
     mostrarPantalla("juego"); panel.innerHTML = ""; marcador.innerHTML = "";
-    capa(`<h2>Instalar la app</h2>${esIOS ? `<p class="sub">En el iPhone o iPad, desde Safari:</p><ol class="pasos"><li>Pulsa el botón <b>Compartir</b> (el cuadrado con la flecha hacia arriba).</li><li>Elige <b>Añadir a pantalla de inicio</b>.</li><li>Pulsa <b>Añadir</b>.</li></ol>` : `<p class="sub">En Android, desde Chrome:</p><ol class="pasos"><li>Pulsa el menú <b>⋮</b> de arriba a la derecha.</li><li>Elige <b>Añadir a pantalla de inicio</b> o <b>Instalar aplicación</b>.</li></ol>`}<button class="btn-sec" id="alMenu">Volver</button>`);
+    const enApp = /wv|FBAN|FBAV|Instagram|WhatsApp/i.test(navigator.userAgent);
+    capa(`<h2>Instalar la app</h2>${esIOS ? `<p class="sub">En el iPhone o iPad, desde Safari:</p><ol class="pasos"><li>Pulsa el botón <b>Compartir</b> (el cuadrado con la flecha hacia arriba).</li><li>Elige <b>Añadir a pantalla de inicio</b>.</li><li>Pulsa <b>Añadir</b>.</li></ol>` : `<p class="sub">En Android, desde <b>Chrome</b>:</p><ol class="pasos"><li>Pulsa el menú <b>⋮</b> de arriba a la derecha.</li><li>Elige <b>Añadir a pantalla de inicio</b> (o <b>Instalar aplicación</b>).</li><li>Pulsa <b>Instalar</b>. El icono aparecerá junto a tus apps.</li></ol>${enApp ? `<p class="aviso">Parece que has abierto el juego dentro de WhatsApp u otra app. Ábrelo en Chrome (menú ⋮ › Abrir en Chrome) para poder instalarlo.</p>` : ""}`}<button class="btn-sec" id="alMenu">Volver</button>`);
     $("#alMenu").onclick = salir;
   };
 }

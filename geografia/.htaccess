@@ -1,0 +1,9 @@
+# Geografía 1º ESO — ajustes para Apache/LiteSpeed
+AddType application/manifest+json .webmanifest
+AddType application/json .json
+<FilesMatch "\.(html|json|php)$">
+  Header set Cache-Control "no-cache"
+</FilesMatch>
+<FilesMatch "sw\.js$">
+  Header set Cache-Control "no-cache"
+</FilesMatch>
