@@ -428,6 +428,9 @@ body.mando .panel { flex: 1; justify-content: center; padding-block: 16px max(20
 .resultado-mando.ok { background: #2fd07f; } .resultado-mando.mal { background: var(--coral); }
 @keyframes entra { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
 @media (min-width: 1300px) { .podio .jug { padding: 1vw 1.4vw; } .podio .jug .nom, .podio .jug .pts { font-size: 2vw; } .podio .sub, .caja-capa .sub { font-size: 1.2vw; } .jugador-sala { font-size: 1.4vw; padding: .6vw 1.2vw; } .enlace-sala { font-size: 1.4vw; } .codigo-sala { font-size: 8vw; } .caja-capa { max-width: 52vw; } .fila-rank { font-size: 1.3vw; } .mapa-caja { margin: 0 0 1vw 1vw; } }
+.opcion-tele { text-align: left; background: var(--fondo); border-radius: 16px; padding: 12px 14px; }
+.opcion-tele b { color: var(--acento); }
+.opcion-tele p { margin: 6px 0 0; line-height: 1.45; font-size: 15px; }
 </style>
 <div id="app">
   <section class="pantalla" id="menu">
@@ -488,7 +491,7 @@ body.mando .panel { flex: 1; justify-content: center; padding-block: 16px max(20
 
       <div class="tele">
         <p><b>Jugar contra otros.</b> En <b>Jugar online</b> creas una sala y pasas el código (o el enlace por WhatsApp): cada uno juega con su móvil, en casa o en clase, y gana quien acierta antes.</p>
-        <p><b>En la tele.</b> Abre el juego en el ordenador o en la Smart TV y elige <b>Tele + mandos</b>: la tele enseña el mapa y un código, y cada jugador entra desde su móvil, que hace de mando. Con Chromecast, envía la pestaña desde Chrome del ordenador.</p>
+        <p><b>En la tele.</b> Abre <b>cazorla.app/geografia</b> en la tele (navegador de la Smart TV, o desde Chrome de un ordenador: menú ⋮ › Enviar › Enviar pestaña al Chromecast) y elige <b>Tele + mandos</b>: la tele enseña el mapa y un código, y cada jugador entra desde su móvil, que hace de mando. Desde el móvil, Chrome no puede enviar la página al Chromecast; solo puede duplicar su pantalla con «Enviar pantalla».</p>
       </div>
       <p class="nota-fuente">Contenido de la ficha «Atlas de los continentes» de 1º ESO: los 6 continentes y los 5 océanos, y los accidentes geográficos de cada continente, con los mismos colores que pide la ficha. Mapas: Natural Earth (dominio público). Las cordilleras y los desiertos están dibujados a mano de forma aproximada.</p>
       <p class="nota-fuente sin-online">El juego online, la tele con mandos y los récords de todos funcionan cuando el juego está subido a cazorla.app/geografia.</p>
@@ -630,18 +633,32 @@ const Tele = {
   },
   async conectar() {
     const url = location.href.split("#")[0] + "#tv";
+    const movil = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+    // En el móvil Chrome no puede mandar una página al Chromecast: explicamos las opciones buenas
+    if (movil) { this.ayudaMovil(); return; }
     if ("PresentationRequest" in window) {
       try {
         const req = new PresentationRequest([url]);
         const c = await req.start();
         if (c.state === "connected") this.registrar(c); else c.onconnect = () => this.registrar(c);
         return;
-      } catch (e) { if (!e || !/NotFound|NotSupported|Security/.test(e.name)) return; }
+      } catch (e) { if (e && /Abort|NotAllowed/.test(e.name)) return; }
     }
     let w = null; try { w = window.open(url, "ryc_tv"); } catch (e) {}
     const ay = $("#teleAyuda");
     ay.hidden = false;
-    ay.textContent = w ? "Se ha abierto una segunda ventana con el mapa. Ponla en la pantalla de la tele (o envíala con Chrome › Enviar › Enviar pestaña) y juega desde esta." : "No se ha encontrado ningún Chromecast. Usa Chrome en Android o en el ordenador. Si la tele está conectada por HDMI a un ordenador, abre ahí el juego en una segunda ventana añadiendo #tv al final de la dirección: esa ventana mostrará lo que juegues en esta.";
+    ay.textContent = w ? "Se ha abierto una segunda ventana con el mapa. Ponla en la pantalla de la tele (o envíala con Chrome › menú ⋮ › Enviar › Enviar pestaña) y juega desde esta." : "No se ha podido abrir la segunda ventana. Abre el juego en otra ventana añadiendo #tv al final de la dirección y ponla en la tele.";
+  },
+  ayudaMovil() {
+    mostrarPantalla("juego"); panel.innerHTML = ""; marcador.innerHTML = ""; $("#barraTiempo").style.visibility = "hidden";
+    capa(`<h2>Jugar en la tele</h2>
+      <p class="sub">Desde el móvil, Chrome no puede mandar una página al Chromecast. Tienes dos formas de hacerlo:</p>
+      <div class="opcion-tele"><b>1. Tele + mandos (la mejor)</b><p>Abre <b>cazorla.app/geografia</b> en la tele (en el navegador de la Smart TV, o enviando la pestaña desde Chrome de un ordenador al Chromecast) y pulsa <b>Tele + mandos</b>. En el móvil entra con el código que sale en pantalla.</p></div>
+      <div class="opcion-tele"><b>2. Duplicar la pantalla del móvil</b><p>Baja el panel de ajustes rápidos de Android y pulsa <b>Enviar pantalla</b> (o en la app Google Home: tu Chromecast › Enviar pantalla). Pon el móvil en horizontal. Se verá lo mismo que en el móvil.</p></div>
+      ${HAY_API ? `<button class="btn-principal" id="irTvSala">Abrir Tele + mandos aquí</button>` : ""}
+      <button class="btn-sec" id="alMenu">Volver</button>`);
+    const b = $("#irTvSala"); if (b) b.onclick = () => { capa(""); Online.crear(true); };
+    $("#alMenu").onclick = salir;
   },
 };
 try { Tele.bc = new BroadcastChannel("ryc-tv"); if (!ES_TV) Tele.bc.onmessage = (e) => { try { if (JSON.parse(e.data).t === "hola") { Tele.bcOn = true; pintarTele(); enviarEstado(); } } catch (_) {} }; } catch (e) {}
