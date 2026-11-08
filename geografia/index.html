@@ -1533,8 +1533,10 @@ async function comprobarServidor() {
   document.querySelectorAll(".sin-online").forEach((n) => (n.hidden = HAY_API));
   if (HAY_API) {
     if (!$("#menu").hidden) pintarRecords();
-    const cod = new URLSearchParams(location.search).get("sala");
+    const q = new URLSearchParams(location.search);
+    const cod = q.get("sala");
     if (cod && /^\d{4}$/.test(cod)) Online.menu(cod);
+    else if (q.has("tv")) { Online.crear(true); }
   }
 }
 
