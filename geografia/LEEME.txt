@@ -1,0 +1,33 @@
+GEOGRAFÍA 1º ESO · Estela Caballero Moreno
+© Jose Caballero (Cazorla 2026)
+
+CÓMO SUBIRLO A cazorla.app/geografia
+1. Entra en el administrador de archivos de tu hosting (o por FTP).
+2. Dentro de la carpeta de cazorla.app (normalmente public_html), crea la carpeta: geografia
+3. Sube DENTRO de esa carpeta todos estos archivos:
+   index.html, api.php, manifest.webmanifest, sw.js,
+   icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png
+4. Abre https://cazorla.app/geografia en el móvil. Si en el menú aparecen
+   «Jugar online» y «Tele + mandos», el servidor funciona.
+
+LA CARPETA «datos»
+- La crea sola api.php la primera vez. Ahí se guardan los récords (records.json)
+  y las salas online (se borran solas a las 4 horas).
+- Si «Jugar online» no aparece o da error, revisa que la carpeta geografia
+  tenga permisos de escritura (755 o 775).
+- Para borrar un récord (por ejemplo, un nombre feo): edita datos/records.json
+  y quita esa línea, o borra el archivo entero para empezar de cero.
+- No se guarda ningún dato personal: solo iniciales, la clase (si la ponen)
+  y la puntuación.
+
+INSTALAR COMO APP
+- Android (Chrome): sale el botón «Instalar app» en el menú del juego,
+  o en el menú ⋮ › «Instalar aplicación».
+- iPhone (Safari): botón Compartir › «Añadir a pantalla de inicio».
+- Instalada, se abre a pantalla completa y los modos de un jugador
+  funcionan aunque no haya internet.
+
+ACTUALIZAR EL JUEGO
+- Sube el nuevo index.html encima del anterior. Si quieres que las apps
+  instaladas se actualicen enseguida, cambia en sw.js "geografia-v1" por
+  "geografia-v2" (y así sucesivamente).
